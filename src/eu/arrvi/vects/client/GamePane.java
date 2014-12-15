@@ -1,11 +1,11 @@
 package eu.arrvi.vects.client;
 
+import javax.imageio.ImageIO;
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Line2D;
-import java.awt.geom.Point2D;
-import java.awt.geom.QuadCurve2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -14,9 +14,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import javax.imageio.ImageIO;
-import javax.swing.JPanel;
 
 class GamePane extends JPanel implements ActionListener {
 	/**
@@ -34,13 +31,13 @@ class GamePane extends JPanel implements ActionListener {
 	/**
 	 * History of positions of all vehicles.
 	 */
-	private Map<Integer, List<Point>> positions = new HashMap<Integer, List<Point>>();
+	private Map<Integer, List<Point>> positions = new HashMap<>();
 
 	/**
 	 * List of current targets (buttons).
 	 * Stored to be removed at the end of the move.
 	 */
-	private List<TargetButton> targets = new ArrayList<TargetButton>();
+	private List<TargetButton> targets = new ArrayList<>();
 
 	/**
 	 * Client window reference for communication.
@@ -123,7 +120,7 @@ class GamePane extends JPanel implements ActionListener {
             Point last = null;
 
 			// Draw this player's trail
-            if ( i.intValue() == contr.getID()) {
+            if ( i == contr.getID()) {
                 g2.setPaint(Color.GREEN.darker());
                 g2.setStroke(solidStroke);
 
@@ -173,7 +170,7 @@ class GamePane extends JPanel implements ActionListener {
 			}
 
 			// Skip repeats
-			if ( !positions.get(i).get(positions.get(i).size() - 1).equals(map.get(i))) {
+			if ( positions.get(i).size() == 0 || !positions.get(i).get(positions.get(i).size() - 1).equals(map.get(i))) {
 				positions.get(i).add(map.get(i));
 			}
 		}
@@ -232,7 +229,7 @@ class GamePane extends JPanel implements ActionListener {
 	 *
 	 * TODO #1 Refactor to event-driven model - remove parent reference
 	 *
-	 * @param evt
+	 * @param evt action event (to specify the sources)
 	 */
 	@Override
 	public void actionPerformed(ActionEvent evt) {
