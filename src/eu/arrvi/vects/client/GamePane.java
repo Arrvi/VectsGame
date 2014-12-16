@@ -62,8 +62,12 @@ class GamePane extends JLayeredPane implements ActionListener {
 		super();
 		this.contr = contr;
 		track = new TrackPane();
+		track.setBorder(BorderFactory.createMatteBorder(1,1,1,1,Color.RED));
 		targetPane = new JPanel();
+		targetPane.setBorder(BorderFactory.createMatteBorder(1,1,1,1,Color.BLUE));
 		targetPane.setLayout(null);
+		
+		this.setBorder(BorderFactory.createMatteBorder(1,1,1,1,Color.GREEN));
 		
 		add(track, new Integer(1));
 		add(targetPane, new Integer(0));
@@ -84,8 +88,19 @@ class GamePane extends JLayeredPane implements ActionListener {
 	public void setTrack(String path, int resolution) throws IOException {
 		this.resolution = resolution;
 		track.setTrack(path, resolution);
+		setPreferredSize(new Dimension((int) (track.getWidth() * scale), (int) (track.getHeight() * scale)));
+		track.setSize(new Dimension((int) (track.getWidth() * scale), (int) (track.getHeight() * scale)));
+		targetPane.setSize(new Dimension((int)(track.getWidth()*scale), (int)(track.getHeight()*scale)));
+		invalidate();
+		repaint();
 	}
-
+	
+	/**
+	 * Adds all vehicles' current positions. This does not take position history.
+	 * Skips repetitive points.
+	 *
+	 * @param map current positions of all vehicles (vehicle id is map key)
+	 */
 	public void updatePositions(Map<Integer, Point> map) {
 		track.updatePositions(map);
 	}
