@@ -8,18 +8,18 @@ import java.util.Set;
  */
 public class Command {
     private final String name;
-    private Set<Object> params;
+    private Set<CommandParameter> params;
 
     public Command() {
         this("NOP");
     }
 
     public Command(String name) {
-        this(name, new HashSet<Object>());
+        this(name, new HashSet<CommandParameter>());
     }
 
-    public Command(String name, Set<Object> params) {
-        this.name = name;
+    public Command(String name, Set<CommandParameter> params) {
+        this.name = name.toUpperCase();
         this.params = params;
     }
 
@@ -27,15 +27,15 @@ public class Command {
         return name;
     }
 
-    public Set<Object> getParams() {
+    public Set<CommandParameter> getParams() {
         return params;
     }
 
-    public void setParams(Set<Object> params) {
+    public void setParams(Set<CommandParameter> params) {
         this.params = params;
     }
     
-    public void addParam(Object param) {
+    public void addParam(CommandParameter param) {
         params.add(param);
     }
     
@@ -52,6 +52,11 @@ public class Command {
         }
         
         return build.toString();
+    }
+
+    @Override
+    public String toString() {
+        return getCommandString();
     }
 
     public static Command getCommandFromString(String command) {

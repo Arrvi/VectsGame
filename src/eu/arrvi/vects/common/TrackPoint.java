@@ -3,7 +3,7 @@ package eu.arrvi.vects.common;
 /**
  * Point on track. Integer coordinates
  */
-public class TrackPoint {
+public class TrackPoint extends CommandParameter {
     public final static String PATTERN = "^[0-9]+,[0-9]+";
     private int x;
     private int y;
