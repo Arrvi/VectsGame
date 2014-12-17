@@ -1,30 +1,37 @@
 package eu.arrvi.vects.server;
 
+import eu.arrvi.vects.common.*;
+
 import java.awt.Point;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 class Vehicle {
-	private Vector speed;
-	private Point position;
+	private SpeedVector speed;
+	private TrackPoint position;
 	private ServerSocketHandler socketHandler;
-	private List<Point> positionHistory = new ArrayList<Point>();
+	private List<TrackPoint> positionHistory = new ArrayList<>();
 	private boolean ready =false;
 	private boolean active=false;
 	private boolean destroyed = false;
 	
+	private int maxSpeed = 10;
+	private int acc = 1;
+	
 	public Vehicle(Point pos) {
 		position = pos;
-		speed = new Vector(0,0);
+		speed = new SpeedVector(0,0);
 		positionHistory.add(pos);
 	}
 	
-	public List<Point> getPossiblePoints() {
-		List<Vector> vec = speed.getMoves();
-		List<Point> pts = new ArrayList<Point>();
-		for (Vector v : vec) {
-			Point pt = (Point) position.clone();
-			pt.translate(v.getDX(), v.getDY());
+	public Set<CommandParameter> getPossibleMoves() {
+		Set<SpeedVector> vec = speed.getMoveVectors(maxSpeed, acc);
+		Set<CommandParameter> pts = new HashSet<>();
+		for (SpeedVector v : vec) {
+			TrackPoint pt = new TrackPoint(position);
+			pt.translate(v);
 			pts.add(pt);
 		}
 		pts.removeAll(socketHandler.getGame().getPositions());
@@ -36,8 +43,8 @@ class Vehicle {
 			doCommand("DEN Not your turn");
 			return false;
 		}
-		if ( getPossiblePoints().contains(point) ) {
-			speed = new Vector(position, point);
+		if ( getPossibleMoves().contains(point) ) {
+			speed = new SpeedVector(position, point);
 			position = point;
 			positionHistory.add(point);
 			System.out.println("Moved "+getID()+" to: "+point);
@@ -84,11 +91,11 @@ class Vehicle {
 		socketHandler.sendCommand(command);
 	}
 
-	public List<Point> getHistory() {
+	public List<TrackPoint> getHistory() {
 		return positionHistory;
 	}
 
-	public Point getPosition() {
+	public TrackPoint getPosition() {
 		return position;
 	}
 
@@ -114,27 +121,19 @@ class Vehicle {
 	
 
 	private void sendPoints() {
-		// sendCommand("POS "+(int)this.getPosition().getX()+","+(int)this.getPosition().getY()+","+game.getTile(vehicle));
-		
-		List<Point> points = this.getPossiblePoints();
-		StringBuilder builder = new StringBuilder();
-		builder.append("TAR ");
-		for (Point point : points) {
-			builder
-				.append((int)point.getX())
-				.append(',')
-				.append((int)point.getY())
-				.append('|');
-		}
-		builder.deleteCharAt(builder.length()-1);
-		socketHandler.sendCommand(builder.toString());
+		Command command = new Command(socketHandler.getPort(), "POS", this.getPossibleMoves());
+		socketHandler.sendCommand(command);
 	}
 
 	public boolean isActive() {
 		return active;
 	}
 
-	public Vector getSpeed() {
+	public SpeedVector getSpeed() {
 		return speed;
+	}
+
+	public VehiclePosition getVehiclePosition() {
+		
 	}
 }

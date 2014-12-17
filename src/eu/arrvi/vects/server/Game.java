@@ -1,16 +1,23 @@
 package eu.arrvi.vects.server;
 
+import eu.arrvi.vects.common.ChatMessage;
+import eu.arrvi.vects.common.Command;
+import eu.arrvi.vects.common.SimpleInfo;
+import eu.arrvi.vects.common.TrackPoint;
+import eu.arrvi.vects.events.CommandEvent;
+import eu.arrvi.vects.events.CommandEventListener;
+import eu.arrvi.vects.events.CommandEventSupport;
+
 import java.awt.Point;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * Main game logic class
  */
-class Game {
+class Game implements CommandEventListener {
     /**
      * Status constants.
      *
@@ -30,6 +37,7 @@ class Game {
      * PCS for server state and player list.
      */
 	private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+	private final CommandEventSupport ces = new CommandEventSupport(this);
 
     /**
      * Number of players currently in game
@@ -44,12 +52,12 @@ class Game {
     /**
      * List of Vehicles that play this game.
      */
-	private List<Vehicle> vehicles = new ArrayList<Vehicle>();
+	private List<Vehicle> vehicles = new ArrayList<>();
 
     /**
      * List of clients connected to server.
      */
-	private List<ServerSocketHandler> broadcastSockets = new ArrayList<ServerSocketHandler>();
+	private List<ServerSocketHandler> broadcastSockets = new ArrayList<>();
 
     /**
      * Number of players required to start a game.
@@ -139,7 +147,9 @@ class Game {
 			if ( vehicle.isReady() ) actives++;
 		}
 		System.out.println(actives+" of "+numberOfPlayers+" active");
-		broadcastCommand("CHT SERVER;"+actives+" of "+numberOfPlayers+" ready");
+		
+		Command command = new Command("CHT", new ChatMessage(ChatMessage.SERVER, actives+" of "+numberOfPlayers+" ready"));
+		ces.fireCommand(command);
 
 		return actives >= numberOfPlayers;
 
@@ -165,13 +175,15 @@ class Game {
 				return;
 			}
 			if (vehicles.get(currentPlayer).isActive() && vehicles.get(currentPlayer).isDestroyed()) {
-				broadcastCommand("CHT SERVER;Player " + vehicles.get(currentPlayer).getID() + " crashed");
+				Command command = new Command("CHT", new ChatMessage(ChatMessage.SERVER, "Player " + vehicles.get(currentPlayer).getID() + " crashed"));
+				ces.fireCommand(command);
 				inGame--;
 			}
 			if (numberOfPlayers >= 2 && inGame <= 1) {
 				for (Vehicle v : vehicles) {
 					if (!v.isDestroyed()) {
-						v.doCommand("WIN All other players crashed");
+						Command command = new Command(v.getID(), "WIN", new SimpleInfo("All other players crashed"));
+						ces.fireCommand(command);
 						end(v);
 						return;
 					}
@@ -212,30 +224,22 @@ class Game {
 	}
 	
 	public void broadcastPositions() {
-		StringBuilder builder = new StringBuilder();
-		builder.append("POS ");
+		Command positionsCommand = new Command("POS");
 		for (Vehicle vehicle : vehicles) {
-			builder
-				.append(vehicle.getID())
-				.append(";")
-				.append((int)vehicle.getPosition().getX())
-				.append(",")
-				.append((int)vehicle.getPosition().getY())
-				.append("|");
+			positionsCommand.addParam(vehicle.getVehiclePosition());
 		}
-		builder.deleteCharAt(builder.length()-1);
-
-		broadcastCommand(builder.toString());
+		ces.fireCommand(positionsCommand);
 	}
 	
-	public List<Point> getPositions() {
-		ArrayList<Point> list = new ArrayList<Point>();
+	public Set<TrackPoint> getPositions() {
+		Set<TrackPoint> pointSet = new HashSet<>();
 		for (Vehicle v : vehicles) {
-			list.add(v.getPosition());
+			pointSet.add(v.getPosition());
 		}
-		return list;
+		return pointSet;
 	}
 
+	@Deprecated
 	public void broadcastCommand(String command) {
 		System.out.println("BROADCAST: "+command);
 //		for (Vehicle vehicle : vehicles) {
@@ -283,6 +287,22 @@ class Game {
 		pcs.removePropertyChangeListener(propertyName, listener);
 	}
 
+	public void addCommandEventListener(CommandEventListener listener) {
+		ces.addCommandEventListener(listener);
+	}
+
+	public void addCommandEventListener(String command, CommandEventListener listener) {
+		ces.addCommandEventListener(command, listener);
+	}
+
+	public void removeCommandEventListener(CommandEventListener listener) {
+		ces.removeCommandEventListener(listener);
+	}
+
+	public void removeCommandEventListener(String command, CommandEventListener listener) {
+		ces.removeCommandEventListener(command, listener);
+	}
+
 	public void end(Vehicle vehicle) {
 		setStatus(FINISHED);
 
@@ -293,5 +313,10 @@ class Game {
 		}
 
 		broadcastCommand("CHT SERVER;Player "+vehicle.getID()+" has won");
+	}
+
+	@Override
+	public void commandReceived(CommandEvent event) {
+		
 	}
 }

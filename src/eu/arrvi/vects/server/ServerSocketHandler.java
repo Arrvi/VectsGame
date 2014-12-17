@@ -1,6 +1,8 @@
 package eu.arrvi.vects.server;
 
 import eu.arrvi.vects.common.Command;
+import eu.arrvi.vects.common.TrackPoint;
+import eu.arrvi.vects.events.CommandEvent;
 import eu.arrvi.vects.events.CommandEventListener;
 import eu.arrvi.vects.events.CommandEventSupport;
 
@@ -8,7 +10,7 @@ import java.awt.*;
 import java.io.*;
 import java.net.Socket;
 
-class ServerSocketHandler implements Runnable {
+class ServerSocketHandler implements Runnable, CommandEventListener {
 	private Socket socket;
 	private BufferedWriter writer;
 	private Game game;
@@ -189,7 +191,7 @@ class ServerSocketHandler implements Runnable {
 		}
 	}
 
-	public Point getPosition() {
+	public TrackPoint getPosition() {
 		if ( vehicle == null ) return null;
 		return vehicle.getPosition();
 	}
@@ -218,5 +220,14 @@ class ServerSocketHandler implements Runnable {
 
 	public void removeCommandEventListener(String command, CommandEventListener listener) {
 		ces.removeCommandEventListener(command, listener);
+	}
+
+	@Override
+	public void commandReceived(CommandEvent event) {
+		
+	}
+
+	public void sendCommand(Command command) {
+		
 	}
 }
