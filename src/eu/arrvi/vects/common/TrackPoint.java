@@ -19,6 +19,10 @@ public class TrackPoint extends CommandParameter {
         this.y = y;
     }
 
+    public TrackPoint(TrackPoint point) {
+        this(point.getX(), point.getY());
+    }
+
     /**
      * Get first coordinate of this point.
      * 
@@ -57,6 +61,11 @@ public class TrackPoint extends CommandParameter {
     public void setY(int y) {
         this.y = y;
     }
+    
+    public void translate(SpeedVector vector) {
+        x += vector.getDX();
+        y += vector.getDY();
+    }
 
     /**
      * Creates point based on string in form `x,y` (used in protocol commands)
@@ -64,7 +73,7 @@ public class TrackPoint extends CommandParameter {
      * @return `null` if string has incorrect syntax, new point with given coordinates otherwise
      * @throws java.lang.NumberFormatException if any part of given string does not represent integer
      */
-    public static TrackPoint getPointFromString(String str) throws NumberFormatException {
+    public static CommandParameter getFromString(String str) throws NumberFormatException {
         String[] coordinates = str.split(",");
         if ( coordinates.length != 2) return null;
         return new TrackPoint(Integer.parseInt(coordinates[0]), Integer.parseInt(coordinates[1]));

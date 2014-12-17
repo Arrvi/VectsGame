@@ -8,36 +8,62 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Created by Arrvi on 2014-12-17.
+ * Support for accepting CommandEventListeners. Listeners may be added for all events or filtered by target or command.
  */
 public class CommandEventSupport {
     private Object source;
-    private Map<String,Set<CommandEventListener>> listeners = new HashMap<>();
+    private Map<String,Set<CommandEventListener>> listenersByCommand = new HashMap<>();
+    private Map<Integer,Set<CommandEventListener>> listenersByTarget = new HashMap<>();
 
     public CommandEventSupport(Object source) {
         this.source = source;
+        listenersByCommand.put(null, new HashSet<CommandEventListener>());
+        listenersByTarget.put(Command.TARGET_BROADCAST, new HashSet<CommandEventListener>());
     }
     
     public void addCommandEventListener(CommandEventListener listener) {
-        addCommandEventListener(null, listener);
+        addCommandEventListener(Command.TARGET_BROADCAST, null, listener);
     }
     
     public void addCommandEventListener(String command, CommandEventListener listener) {
-        if ( !listeners.containsKey(command) ) {
-            listeners.put(command, new HashSet<CommandEventListener>());
+        addCommandEventListener(Command.TARGET_BROADCAST, command, listener);
+    }
+    
+    public void addCommandEventListener(int target, CommandEventListener listener) {
+        addCommandEventListener(target, null, listener);
+    }
+    
+    public void addCommandEventListener(int target, String command, CommandEventListener listener) {
+        if ( !listenersByCommand.containsKey(command) ) {
+            listenersByCommand.put(command, new HashSet<CommandEventListener>());
         }
-        listeners.get(command).add(listener);
+        listenersByCommand.get(command).add(listener);
+        
+        if ( !listenersByTarget.containsKey(command) ) {
+            listenersByTarget.put(target, new HashSet<CommandEventListener>());
+        }
+        listenersByTarget.get(target).add(listener);
     }
     
     public void removeCommandEventListener(CommandEventListener listener) {
-        removeCommandEventListener(null, listener);
+        removeCommandEventListener(Command.TARGET_BROADCAST, null, listener);
     }
     
     public void removeCommandEventListener(String command, CommandEventListener listener) {
-        if ( !listeners.containsKey(command)) {
-            return;
+        removeCommandEventListener(Command.TARGET_BROADCAST, command, listener);
+    }
+    
+    public void removeCommandEventListener(int target, CommandEventListener listener ) {
+        removeCommandEventListener(target, null, listener);
+    }
+    
+    public void removeCommandEventListener(int target, String command, CommandEventListener listener) {
+        if ( listenersByCommand.containsKey(command)) {
+            listenersByCommand.get(command).remove(listener);
         }
-        listeners.get(command).remove(listener);
+        if ( listenersByTarget.containsKey(target) ) {
+            listenersByTarget.get(target).remove(listener);
+        }
     }
     
     public void fireCommand(Command command) {
@@ -45,15 +71,20 @@ public class CommandEventSupport {
     }
     
     private void fire(CommandEvent event) {
-        if ( listeners.containsKey(null) ) {
-            for (CommandEventListener commandEventListener : listeners.get(null)) {
-                commandEventListener.commandReceived(event);
-            }
+        Set<CommandEventListener> listenerSet = new HashSet<>();
+        
+        listenerSet.addAll(listenersByCommand.get(null));
+        listenerSet.addAll(listenersByTarget.get(Command.TARGET_BROADCAST));
+        
+        if ( listenersByCommand.containsKey(event.getCommand().getName()) ) {
+            listenerSet.addAll(listenersByCommand.get(event.getCommand().getName()));
         }
-        if ( listeners.containsKey(event.getCommand().getName()) ) {
-            for (CommandEventListener commandEventListener : listeners.get(event.getCommand().getName())) {
-                commandEventListener.commandReceived(event);
-            }
+        if ( listenersByTarget.containsKey(event.getCommand().getTarget()) ) {
+            listenerSet.addAll(listenersByTarget.get(event.getCommand().getTarget()));
+        }
+
+        for (CommandEventListener listener : listenerSet) {
+            listener.commandReceived(event);
         }
     }
 }

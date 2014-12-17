@@ -26,7 +26,7 @@ public class VehiclePosition extends TrackPoint {
         this.vehicleId = vehicleId;
     }
     
-    public static VehiclePosition getPositionFromString(String str) throws NumberFormatException {
+    public static CommandParameter getFromString(String str) throws NumberFormatException {
         String[] parts = str.split("[;,]");
         if ( parts.length != 3 ) {
             return null;

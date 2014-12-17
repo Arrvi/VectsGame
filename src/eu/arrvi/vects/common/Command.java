@@ -7,6 +7,9 @@ import java.util.Set;
  * Vects protocol command. It consists of command name and list of parameters.
  */
 public class Command {
+    public final static int TARGET_BROADCAST = -1;
+
+    private final int target;
     private final String name;
     private Set<CommandParameter> params;
 
@@ -15,19 +18,35 @@ public class Command {
     }
 
     public Command(String name) {
-        this(name, new HashSet<CommandParameter>());
+        this(TARGET_BROADCAST, name, new HashSet<CommandParameter>());
     }
 
-    public Command(String name, Set<CommandParameter> params) {
+    public Command(int target, String name) {
+        this(target, name, new HashSet<CommandParameter>());
+    }
+
+    public Command(int target, String name, CommandParameter param) {
+        this.target = target;
+        this.name = name;
+        this.params = new HashSet<>(1);
+        this.params.add(param);
+    }
+
+    public Command(int target, String name, Set<CommandParameter> params) {
+        this.target = target;
         this.name = name.toUpperCase();
         this.params = params;
+    }
+
+    public Command(String name, CommandParameter parameter) {
+        this(Command.TARGET_BROADCAST, name, parameter);
     }
 
     public String getName() {
         return name;
     }
 
-    public Set<CommandParameter> getParams() {
+    public Set<? extends CommandParameter> getParams() {
         return params;
     }
 
@@ -38,7 +57,11 @@ public class Command {
     public void addParam(CommandParameter param) {
         params.add(param);
     }
-    
+
+    public int getTarget() {
+        return target;
+    }
+
     public String getCommandString() {
         StringBuilder build = new StringBuilder(name);
         
@@ -79,10 +102,10 @@ public class Command {
 
     private static Object parseParam(String paramString) {
         if ( paramString.matches(VehiclePosition.PATTERN) ) {
-            return VehiclePosition.getPositionFromString(paramString);
+            return VehiclePosition.getFromString(paramString);
         }
         else if (paramString.matches(TrackPoint.PATTERN)) {
-            return TrackPoint.getPointFromString(paramString);
+            return TrackPoint.getFromString(paramString);
         }
         return null;
     }
