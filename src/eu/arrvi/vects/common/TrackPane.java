@@ -64,7 +64,6 @@ public class TrackPane extends JPanel {
     public TrackPane(int highlightPlayerId) {
         super();
         this.highlightPlayerId = highlightPlayerId;
-//        setPreferredSize(new Dimension(500,500));
         setLayout(null);
     }
 
@@ -83,7 +82,6 @@ public class TrackPane extends JPanel {
         this.resolution = resolution;
         File file = new File(path);
         track = ImageIO.read(file);
-//        setPreferredSize(new Dimension((int)(track.getWidth()*scale), (int)(track.getHeight()*scale)));
     }
 
     /**
@@ -219,13 +217,11 @@ public class TrackPane extends JPanel {
         this.repaint();
     }
 
-    @Override
-    public int getHeight() {
+    public int getTrackHeight() {
         return track.getHeight();
     }
 
-    @Override
-    public int getWidth() {
+    public int getTrackWidth() {
         return track.getWidth();
     }
 }
