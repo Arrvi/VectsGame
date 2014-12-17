@@ -1,11 +1,11 @@
 package eu.arrvi.vects.server;
 
-import java.awt.Point;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import eu.arrvi.vects.common.Command;
+import eu.arrvi.vects.events.CommandEventListener;
+import eu.arrvi.vects.events.CommandEventSupport;
+
+import java.awt.*;
+import java.io.*;
 import java.net.Socket;
 
 class ServerSocketHandler implements Runnable {
@@ -13,6 +13,8 @@ class ServerSocketHandler implements Runnable {
 	private BufferedWriter writer;
 	private Game game;
 	private Vehicle vehicle;
+	
+	private CommandEventSupport ces = new CommandEventSupport(this);
 
 	public ServerSocketHandler(Socket socket, Game game) {
 		this.socket = socket;
@@ -147,16 +149,15 @@ class ServerSocketHandler implements Runnable {
 		try {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			
-			String command;
+			String commandString;
 			
-			while((command = reader.readLine()) != null) {
-				System.out.println(getPort()+": "+command);
-				if ( runCommand(command) ) {
-					game.nextPlayer();
-				}
-				else {
-					System.out.println("continue");
-				}
+			while((commandString = reader.readLine()) != null) {
+				System.out.println(getPort()+": "+commandString);
+				Command command = Command.getCommandFromString(commandString);
+				
+				if ( command == null ) continue;
+				
+				ces.fireCommand(command);
 			}
 			
 			System.out.println("connection closed...");	
@@ -201,5 +202,21 @@ class ServerSocketHandler implements Runnable {
 	public String getSpeedString() {
 		if (vehicle == null ) return null;
 		return vehicle.getSpeed().toString();
+	}
+
+	public void addCommandEventListener(CommandEventListener listener) {
+		ces.addCommandEventListener(listener);
+	}
+
+	public void addCommandEventListener(String command, CommandEventListener listener) {
+		ces.addCommandEventListener(command, listener);
+	}
+
+	public void removeCommandEventListener(CommandEventListener listener) {
+		ces.removeCommandEventListener(listener);
+	}
+
+	public void removeCommandEventListener(String command, CommandEventListener listener) {
+		ces.removeCommandEventListener(command, listener);
 	}
 }
