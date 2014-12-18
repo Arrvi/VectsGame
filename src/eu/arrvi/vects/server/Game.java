@@ -4,10 +4,7 @@ import eu.arrvi.vects.common.ChatMessage;
 import eu.arrvi.vects.common.Command;
 import eu.arrvi.vects.common.SimpleInfo;
 import eu.arrvi.vects.common.TrackPoint;
-import eu.arrvi.vects.events.AdvancedCommandEventHandler;
-import eu.arrvi.vects.events.CommandEvent;
-import eu.arrvi.vects.events.CommandEventListener;
-import eu.arrvi.vects.events.CommandEventSupport;
+import eu.arrvi.vects.events.*;
 
 import java.awt.Point;
 import java.beans.PropertyChangeListener;
@@ -79,7 +76,7 @@ class Game {
      * FINISHED - game ended
      * ERROR - an error occurred during game
      */
-	private int status = WAITING;
+	private int status = 0;
 
     /**
      * Creates new game that waits for new players and eventually starts.
@@ -110,11 +107,9 @@ class Game {
      *
      * @param v vehicle to be added
      */
-	@Deprecated
 	public void addVehicle(Vehicle v) {
 		if ( vehicles.size() >= numberOfPlayers ) {
-			v.doCommand("DEN No more slots left");
-			return;
+			throw new GameFullException(v.getID());
 		}
 		vehicles.add(v);
 		inGame++;
@@ -335,10 +330,24 @@ class Game {
 	}
 	
 	
-	private CommandEventListener commandHandler = new AdvancedCommandEventHandler() {
+	private CommandEventListener commandHandler = new AdvancedCommandEventAdapter() {
 		@Override
 		protected void unknownCommand(CommandEvent command) {
 			System.err.println("Unimplemented command: "+command.toString());
+		}
+		
+		@BindCommand("ECH")
+		public void recieveEcho(CommandEvent evt) {
+			ces.fireCommand(new Command(
+					((ServerSocketHandler)evt.getSource()).getPort(),
+					"ACK",
+					evt.getCommand().getParams()
+			));
+		}
+		
+		@BindCommand("RDY")
+		public void recieveReady(CommandEvent evt) {
+			
 		}
 	};
 

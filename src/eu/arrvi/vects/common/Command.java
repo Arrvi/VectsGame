@@ -46,7 +46,7 @@ public class Command {
         return name;
     }
 
-    public Set<? extends CommandParameter> getParams() {
+    public Set<CommandParameter> getParams() {
         return params;
     }
 

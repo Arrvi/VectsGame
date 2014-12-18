@@ -1,8 +1,5 @@
 package eu.arrvi.vects.events;
 
-import eu.arrvi.vects.common.Command;
-
-import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -11,13 +8,13 @@ import java.util.Map;
 /**
  * Created by Kris on 2014-12-18.
  */
-public abstract class AdvancedCommandEventHandler implements CommandEventListener {
+public abstract class AdvancedCommandEventAdapter implements CommandEventListener {
     private Map<String, Method> bindingMap;
     
     private void bindMethods() {
         bindingMap = new HashMap<>();
         
-        Class<? extends AdvancedCommandEventHandler> obj = this.getClass();
+        Class<? extends AdvancedCommandEventAdapter> obj = this.getClass();
     
         for (Method method : obj.getDeclaredMethods()) {
             Class<?>[] parameterTypes = method.getParameterTypes();
@@ -35,6 +32,8 @@ public abstract class AdvancedCommandEventHandler implements CommandEventListene
     
     @Override
     public void commandReceived(CommandEvent event) {
+        if ( bindingMap == null ) bindMethods();
+        
         Method method = null;
 
         if (bindingMap.containsKey(event.getCommand().getName())) {
