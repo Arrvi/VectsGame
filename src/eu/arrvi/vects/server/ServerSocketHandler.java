@@ -1,11 +1,9 @@
 package eu.arrvi.vects.server;
 
 import eu.arrvi.vects.common.Command;
-import eu.arrvi.vects.common.TrackPoint;
 import eu.arrvi.vects.events.CommandEventListener;
 import eu.arrvi.vects.events.CommandEventSupport;
 
-import java.awt.*;
 import java.io.*;
 import java.net.Socket;
 
@@ -187,5 +185,9 @@ class ServerSocketHandler implements Runnable {
 
 	public void sendCommand(Command command) {
 		write(command.getCommandString());
+	}
+	
+	public void close() throws IOException {
+		socket.close();
 	}
 }

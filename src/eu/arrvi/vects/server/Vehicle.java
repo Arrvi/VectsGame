@@ -2,7 +2,7 @@ package eu.arrvi.vects.server;
 
 import eu.arrvi.vects.common.*;
 
-import java.awt.Point;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -38,33 +38,30 @@ class Vehicle {
 		return pts;
 	}
 	
-	public boolean moveTo(Point point) {
+	public int moveTo(TrackPoint point) throws GameException {
 		if ( !active ) {
-			doCommand("DEN Not your turn");
-			return false;
+			throw new VehicleNotActiveException(this.getID());
 		}
-		if ( getPossibleMoves().contains(point) ) {
-			speed = new SpeedVector(position, point);
-			position = point;
-			positionHistory.add(point);
-			System.out.println("Moved "+getID()+" to: "+point);
-			
-			if ( getTile() == Track.OUT ) {
-				destroyVehicle();
-				doCommand("LOS You have crashed");
-			}
-			else if ( getTile() == Track.FINISH ) {
-				win();
-				doCommand("WIN You have finished first");
-			}
-			else {
-				doCommand("ACK "+(int)point.getX()+","+(int)point.getY());
-			}
-			
-			return true;
+		if ( !getPossibleMoves().contains(point) ) {
+			throw new IllegalMoveException(this.getID());
 		}
-		doCommand("DEN Illegal move");
-		return false;
+		speed = new SpeedVector(position, point);
+		position = point;
+		positionHistory.add(point);
+		System.out.println("Moved "+getID()+" to: "+point);
+		
+		
+
+		if ( getTile() == Track.OUT ) {
+			destroyVehicle();
+		}
+		else if ( getTile() == Track.FINISH ) {
+			win();
+			doCommand("WIN You have finished first");
+		}
+		else {
+			doCommand("ACK "+(int)point.getX()+","+(int)point.getY());
+		}
 	}
 
 	private void win() {

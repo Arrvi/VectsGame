@@ -6,10 +6,12 @@ import eu.arrvi.vects.common.SimpleInfo;
 import eu.arrvi.vects.common.TrackPoint;
 import eu.arrvi.vects.events.*;
 
-import java.awt.Point;
+import java.awt.*;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.io.IOException;
 import java.util.*;
+import java.util.List;
 
 /**
  * Main game logic class
@@ -190,7 +192,10 @@ class Game {
 				return;
 			}
 			if (vehicles.get(currentPlayer).isActive() && vehicles.get(currentPlayer).isDestroyed()) {
-				Command command = new Command("CHT", new ChatMessage(ChatMessage.SERVER, "Player " + vehicles.get(currentPlayer).getID() + " crashed"));
+				Command command = new Command(
+						"CHT", 
+						new ChatMessage(ChatMessage.SERVER, "Player " + vehicles.get(currentPlayer).getID() + " crashed")
+				);
 				ces.fireCommand(command);
 				inGame--;
 			}
@@ -337,7 +342,7 @@ class Game {
 		}
 		
 		@BindCommand("ECH")
-		public void recieveEcho(CommandEvent evt) {
+		public void receiveEcho(CommandEvent evt) {
 			ces.fireCommand(new Command(
 					((ServerSocketHandler)evt.getSource()).getPort(),
 					"ACK",
@@ -346,7 +351,26 @@ class Game {
 		}
 		
 		@BindCommand("RDY")
-		public void recieveReady(CommandEvent evt) {
+		public void receiveReady(CommandEvent evt) {
+			try {
+				addVehicle(new Vehicle(getStartPoint()));
+			}
+			catch (GameFullException e){
+				ces.fireCommand(e.getDenialCommand());
+			}
+		}
+		
+		@BindCommand("BYE")
+		public void receiveBye(CommandEvent evt) {
+			try {
+				((ServerSocketHandler) evt.getSource()).close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		@BindCommand("MOV")
+		public void receiveMove(CommandEvent evt) {
 			
 		}
 	};
