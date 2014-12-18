@@ -48,7 +48,7 @@ class Server implements Runnable, PropertyChangeListener {
             try {
                 Socket socket = listener.accept();
                 System.out.println("connected " + socket.getPort());
-                new ServerSocketHandler(socket, game);
+                game.addClient(new ServerSocketHandler(socket));
             }
             catch (SocketException e) {
                 System.out.println("Server does not accept further connections");

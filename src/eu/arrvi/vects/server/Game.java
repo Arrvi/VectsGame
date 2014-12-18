@@ -4,6 +4,7 @@ import eu.arrvi.vects.common.ChatMessage;
 import eu.arrvi.vects.common.Command;
 import eu.arrvi.vects.common.SimpleInfo;
 import eu.arrvi.vects.common.TrackPoint;
+import eu.arrvi.vects.events.AdvancedCommandEventHandler;
 import eu.arrvi.vects.events.CommandEvent;
 import eu.arrvi.vects.events.CommandEventListener;
 import eu.arrvi.vects.events.CommandEventSupport;
@@ -11,7 +12,6 @@ import eu.arrvi.vects.events.CommandEventSupport;
 import java.awt.Point;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.io.IOException;
 import java.util.*;
 
 /**
@@ -58,6 +58,8 @@ class Game {
      * List of clients connected to server.
      */
 	private List<ServerSocketHandler> broadcastSockets = new ArrayList<>();
+	
+	private Set<ServerSocketHandler> clients = new HashSet<>();
 
     /**
      * Number of players required to start a game.
@@ -108,6 +110,7 @@ class Game {
      *
      * @param v vehicle to be added
      */
+	@Deprecated
 	public void addVehicle(Vehicle v) {
 		if ( vehicles.size() >= numberOfPlayers ) {
 			v.doCommand("DEN No more slots left");
@@ -124,21 +127,38 @@ class Game {
      *
      * @param v vehicle to be removed.
      */
+	@Deprecated
 	public void removeVehicle(Vehicle v) {
 		// vehicles.remove(v); // FIXME - wtf?
 		pcs.firePropertyChange("playerList", null, broadcastSockets);
 	}
 	
+	@Deprecated
 	public void addBroadcast(ServerSocketHandler socket) {
-		socket.sendCommand("ACK "+socket.getPort());
-		socket.sendCommand("TRK "+track.getTrackPath()+";"+track.getResolution());
+		socket.write("ACK " + socket.getPort());
+		socket.write("TRK " + track.getTrackPath() + ";" + track.getResolution());
 		broadcastSockets.add(socket);
 		pcs.firePropertyChange("playerList", null, broadcastSockets);
 	}
 
+	@Deprecated
 	public void removeBroadcast(ServerSocketHandler socket) {
 		broadcastSockets.remove(socket);
 		pcs.firePropertyChange("playerList", null, broadcastSockets);
+	}
+	
+	public void addClient(ServerSocketHandler socket) {
+		clients.add(socket);
+		ces.addCommandEventListener(socket.getPort(), socket);
+		socket.addCommandEventListener(commandHandler);
+		pcs.firePropertyChange("connectedSockets", null, clients);
+	}
+	
+	public void removeClient(ServerSocketHandler socket) {
+		clients.remove(socket);
+		ces.removeCommandEventListener(socket.getPort(), socket);
+		socket.removeCommandEventListener(commandHandler)
+		pcs.firePropertyChange("connectedSockets", null, clients);
 	}
 
 	public boolean ready() {
@@ -246,7 +266,7 @@ class Game {
 //			vehicle.doCommand(command);
 //		}
 		for (ServerSocketHandler socket : broadcastSockets) {
-			socket.sendCommand(command);
+			socket.write(command);
 		}
 	}
 
@@ -313,5 +333,13 @@ class Game {
 			ces.fireCommand(new Command(v.getID(), "LOS", new SimpleInfo("Player "+vehicle.getID()+" has won")));
 		}
 	}
+	
+	
+	private CommandEventListener commandHandler = new AdvancedCommandEventHandler() {
+		@Override
+		protected void unknownCommand(CommandEvent command) {
+			System.err.println("Unimplemented command: "+command.toString());
+		}
+	};
 
 }

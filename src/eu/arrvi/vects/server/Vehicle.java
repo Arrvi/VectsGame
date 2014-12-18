@@ -88,7 +88,7 @@ class Vehicle {
 	}
 	
 	public void doCommand(String command) {
-		socketHandler.sendCommand(command);
+		socketHandler.write(command);
 	}
 
 	public List<TrackPoint> getHistory() {

@@ -2,7 +2,6 @@ package eu.arrvi.vects.server;
 
 import eu.arrvi.vects.common.Command;
 import eu.arrvi.vects.common.TrackPoint;
-import eu.arrvi.vects.events.CommandEvent;
 import eu.arrvi.vects.events.CommandEventListener;
 import eu.arrvi.vects.events.CommandEventSupport;
 
@@ -10,17 +9,14 @@ import java.awt.*;
 import java.io.*;
 import java.net.Socket;
 
-class ServerSocketHandler implements Runnable, CommandEventListener {
+class ServerSocketHandler implements Runnable {
 	private Socket socket;
 	private BufferedWriter writer;
-	private Game game;
-	private Vehicle vehicle;
 	
 	private CommandEventSupport ces = new CommandEventSupport(this);
 
-	public ServerSocketHandler(Socket socket, Game game) {
+	public ServerSocketHandler(Socket socket) {
 		this.socket = socket;
-		this.game = game;
 		(new Thread(this)).start();
 		try {
 			writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
@@ -32,8 +28,6 @@ class ServerSocketHandler implements Runnable, CommandEventListener {
 			}
 			e.printStackTrace();
 		}
-		
-		game.addBroadcast(this);
 	}
 	
 	public int getPort() {
@@ -41,7 +35,7 @@ class ServerSocketHandler implements Runnable, CommandEventListener {
 	}
 	
 
-	public void sendCommand(String command) {
+	public void write(String command) {
 		try {
 			writer.write(command+"\r\n");
 			writer.flush();
@@ -50,14 +44,10 @@ class ServerSocketHandler implements Runnable, CommandEventListener {
 		}
 	}
 	
-	public Game getGame() {
-		return game;
-	}
-	
-
+	@Deprecated
 	public boolean runCommand(String command) {
 		if (command.length() < 3) {
-			chatMessage(command);
+//			chatMessage(command);
 			return false;
 		}
 		switch (command.substring(0, 3).toUpperCase()) {
@@ -74,7 +64,7 @@ class ServerSocketHandler implements Runnable, CommandEventListener {
 		 * Simple response
 		 */
 		case "ECH":
-			vehicle.doCommand("ACK "+command.substring(4));
+//			vehicle.doCommand("ACK "+command.substring(4));
 			return false;
 			
 		/*
@@ -82,9 +72,9 @@ class ServerSocketHandler implements Runnable, CommandEventListener {
 		 * Declare ready to race
 		 */
 		case "RDY":
-			createVehicle();
-			vehicle.setReady(true);
-			game.updateReady();
+//			createVehicle();
+//			vehicle.setReady(true);
+//			game.updateReady();
 			return false;
 		
 		/*
@@ -99,7 +89,7 @@ class ServerSocketHandler implements Runnable, CommandEventListener {
 		 * Declare not ready to race
 		 */
 		case "NOT":
-			vehicle.setReady(false);
+//			vehicle.setReady(false);
 			return false;
 		
 		/*
@@ -107,13 +97,13 @@ class ServerSocketHandler implements Runnable, CommandEventListener {
 		 * Close connection to server 
 		 */
 		case "BYE":
-			sendCommand("BYE");
+			write("BYE");
 			try {
 				socket.close();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			game.removeVehicle(vehicle);
+//			game.removeVehicle(vehicle);
 			return true;
 		
 		/*
@@ -122,7 +112,7 @@ class ServerSocketHandler implements Runnable, CommandEventListener {
 		 */
 		case "MOV":
 			String[] pos = command.substring(4).split(",");
-			return vehicle.moveTo(new Point(Integer.parseInt(pos[0]), Integer.parseInt(pos[1])));
+//			return vehicle.moveTo(new Point(Integer.parseInt(pos[0]), Integer.parseInt(pos[1])));
 		
 		/*
 		 * CHT - Chat
@@ -131,19 +121,9 @@ class ServerSocketHandler implements Runnable, CommandEventListener {
 		case "CHT":
 			command = command.substring(4);
 		default:
-			chatMessage(command);
+//			chatMessage(command);
 			return false;
 		}
-	}
-
-	private void createVehicle() {
-		this.vehicle = new Vehicle(game.getStartPoint());
-		vehicle.setSocketHandler(this);
-		game.addVehicle(vehicle);
-	}
-
-	private void chatMessage(String command) {
-		game.broadcastCommand("CHT "+getPort()+";"+command);
 	}
 
 	@Override
@@ -167,44 +147,27 @@ class ServerSocketHandler implements Runnable, CommandEventListener {
 			System.out.println("connection closed with exception...");
 			e.printStackTrace();
 		} finally {
-			game.removeBroadcast(this);
-			if (vehicle != null)
-				game.removeVehicle(vehicle);
+			ces.fireCommand(new Command("BYE"));
 		}
 	}
 
-	public String getStatusString() {
-		if ( vehicle == null ) {
-			return "Broadcast only";
-		}
-		if ( vehicle.isDestroyed() ) {
-			return "Destroyed";
-		}
-		if ( vehicle.isActive() ) {
-			return "Active";
-		}
-		if ( vehicle.isReady() ) {
-			return "Ready";
-		}
-		else {
-			return "Not ready";
-		}
-	}
-
-	public TrackPoint getPosition() {
-		if ( vehicle == null ) return null;
-		return vehicle.getPosition();
-	}
-
-	public String getTile()  {
-		if ( vehicle == null ) return null;
-		return Track.colorNames.get(vehicle.getTile());
-	}
-
-	public String getSpeedString() {
-		if (vehicle == null ) return null;
-		return vehicle.getSpeed().toString();
-	}
+//	public String getStatusString() {
+//		if ( vehicle == null ) {
+//			return "Broadcast only";
+//		}
+//		if ( vehicle.isDestroyed() ) {
+//			return "Destroyed";
+//		}
+//		if ( vehicle.isActive() ) {
+//			return "Active";
+//		}
+//		if ( vehicle.isReady() ) {
+//			return "Ready";
+//		}
+//		else {
+//			return "Not ready";
+//		}
+//	}
 
 	public void addCommandEventListener(CommandEventListener listener) {
 		ces.addCommandEventListener(listener);
@@ -222,12 +185,7 @@ class ServerSocketHandler implements Runnable, CommandEventListener {
 		ces.removeCommandEventListener(command, listener);
 	}
 
-	@Override
-	public void commandReceived(CommandEvent event) {
-		
-	}
-
 	public void sendCommand(Command command) {
-		
+		write(command.getCommandString());
 	}
 }
