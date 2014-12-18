@@ -17,7 +17,7 @@ import java.util.*;
 /**
  * Main game logic class
  */
-class Game implements CommandEventListener {
+class Game {
     /**
      * Status constants.
      *
@@ -310,13 +310,8 @@ class Game implements CommandEventListener {
 		for ( Vehicle v : vehicles ) {
 			if ( v == vehicle || v.isDestroyed() ) continue;
 			v.doCommand("LOS Player "+vehicle.getID()+" has won");
+			ces.fireCommand(new Command(v.getID(), "LOS", new SimpleInfo("Player "+vehicle.getID()+" has won")));
 		}
-
-		broadcastCommand("CHT SERVER;Player "+vehicle.getID()+" has won");
 	}
 
-	@Override
-	public void commandReceived(CommandEvent event) {
-		
-	}
 }
