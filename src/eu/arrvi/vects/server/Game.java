@@ -1,9 +1,6 @@
 package eu.arrvi.vects.server;
 
-import eu.arrvi.vects.common.ChatMessage;
-import eu.arrvi.vects.common.Command;
-import eu.arrvi.vects.common.SimpleInfo;
-import eu.arrvi.vects.common.TrackPoint;
+import eu.arrvi.vects.common.*;
 import eu.arrvi.vects.events.*;
 
 import java.awt.*;
@@ -208,6 +205,8 @@ class Game {
 						return;
 					}
 				}
+				end(null);
+				return;
 			}
 			for (Vehicle vehicle : vehicles) {
 				vehicle.setActive(false);
@@ -326,11 +325,18 @@ class Game {
 	public void end(Vehicle vehicle) {
 		setStatus(FINISHED);
 
+		CommandParameter info;
+		if (vehicle != null) {
+			info = new SimpleInfo("Player "+vehicle.getID()+" has won");
+		}
+		else {
+			info = new SimpleInfo("All players have crashed");
+		}
+
 		broadcastPositions();
 		for ( Vehicle v : vehicles ) {
 			if ( v == vehicle || v.isDestroyed() ) continue;
-			v.doCommand("LOS Player "+vehicle.getID()+" has won");
-			ces.fireCommand(new Command(v.getID(), "LOS", new SimpleInfo("Player "+vehicle.getID()+" has won")));
+			ces.fireCommand(new Command(v.getID(), "LOS", info));
 		}
 	}
 	
