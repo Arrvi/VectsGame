@@ -1,16 +1,21 @@
 package eu.arrvi.vects.spectator;
 
+import eu.arrvi.vects.common.Command;
+import eu.arrvi.vects.events.CommandEvent;
+import eu.arrvi.vects.events.CommandEventListener;
+import eu.arrvi.vects.events.CommandEventSupport;
+
 import java.io.IOException;
 import java.net.*;
 
 /**
  * Vects spectator protocol handler
  */
-public class DatagramHandler {
+public class DatagramHandler implements CommandEventListener {
     /**
      * Broadcast address for sending requests for server information
      */
-    private InetAddress broadcast;
+    private InetAddress broadcastAddress;
 
     /**
      * Broadcast port for sending requests for server information
@@ -26,6 +31,8 @@ public class DatagramHandler {
      * Input datagram
      */
     DatagramPacket input = new DatagramPacket(new byte[512], 512);
+    
+    CommandEventSupport ces = new CommandEventSupport(this);
 
     /**
      * Creates handler for spectator protocol. Configures socket and broadcast then starts to listen on given port.
@@ -40,7 +47,7 @@ public class DatagramHandler {
 
         socket = new DatagramSocket(port);
 
-        broadcast = networkInterface.getInterfaceAddresses().get(0).getBroadcast();
+        broadcastAddress = networkInterface.getInterfaceAddresses().get(0).getBroadcast();
         
         new Thread(new Runnable() {
             @Override
@@ -65,9 +72,54 @@ public class DatagramHandler {
      */
     private void sendBroadcast(String data) throws IOException {
         DatagramPacket output = new DatagramPacket(data.getBytes(), data.length()+1);
-        output.setAddress(broadcast);
+        output.setAddress(broadcastAddress);
         output.setPort(broadcastPort);
         output.setData(data.getBytes());
         socket.send(output);
+    }
+    
+    public void close() {
+        socket.close();
+    }
+
+    public void addCommandEventListener(CommandEventListener listener) {
+        ces.addCommandEventListener(listener);
+    }
+
+    public void addCommandEventListener(String command, CommandEventListener listener) {
+        ces.addCommandEventListener(command, listener);
+    }
+
+    public void addCommandEventListener(int target, CommandEventListener listener) {
+        ces.addCommandEventListener(target, listener);
+    }
+
+    public void addCommandEventListener(int target, String command, CommandEventListener listener) {
+        ces.addCommandEventListener(target, command, listener);
+    }
+
+    public void removeCommandEventListener(CommandEventListener listener) {
+        ces.removeCommandEventListener(listener);
+    }
+
+    public void removeCommandEventListener(String command, CommandEventListener listener) {
+        ces.removeCommandEventListener(command, listener);
+    }
+
+    public void removeCommandEventListener(int target, CommandEventListener listener) {
+        ces.removeCommandEventListener(target, listener);
+    }
+
+    public void removeCommandEventListener(int target, String command, CommandEventListener listener) {
+        ces.removeCommandEventListener(target, command, listener);
+    }
+
+    @Override
+    public void commandReceived(CommandEvent event) {
+        
+    }
+    
+    public void sendCommand(Command command) {
+        
     }
 }

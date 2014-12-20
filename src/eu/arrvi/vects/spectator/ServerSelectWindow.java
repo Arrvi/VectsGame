@@ -1,21 +1,59 @@
 package eu.arrvi.vects.spectator;
 
+import eu.arrvi.vects.common.Command;
+import eu.arrvi.vects.events.AdvancedCommandEventAdapter;
+import eu.arrvi.vects.events.CommandEvent;
+import eu.arrvi.vects.events.CommandEventListener;
+
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 
 /**
  * Window in which user can select list all servers in local network and connect to one of them.
  */
 public class ServerSelectWindow extends JFrame {
-    public ServerSelectWindow() throws HeadlessException {
+    private final JTable serverListTable;
+    private final ServerListTableModel serverListTableModel = new ServerListTableModel();
+    DatagramHandler socket;
+
+    public ServerSelectWindow() throws HeadlessException, SocketException, UnknownHostException {
         super("Vects Spectator");
+        
+        socket = new DatagramHandler(11531);
+        this.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                super.windowClosed(e);
+                socket.close();
+            }
+        });
+        socket.addCommandEventListener(listener);
+        
+        serverListTable = new JTable(serverListTableModel);
+        serverListTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        serverListTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                if ( e.getValueIsAdjusting() ) return;
+                boolean isSelected = serverListTable.getSelectedRow() != -1;
+                connectAction.setEnabled(isSelected);
+            }
+        });
 
         JPanel pane = new JPanel();
         pane.setLayout(new BorderLayout());
         pane.setBorder(BorderFactory.createTitledBorder("Select server"));
 
-        pane.add(new JScrollPane(new JTable(new ServerListTableModel())));
+        pane.add(new JButton(refreshAction), BorderLayout.NORTH);
+        pane.add(new JScrollPane(serverListTable));
         pane.add(new JButton(connectAction), BorderLayout.SOUTH);
 
         setContentPane(pane);
@@ -23,6 +61,14 @@ public class ServerSelectWindow extends JFrame {
         pack();
         setLocationRelativeTo(null);
         setVisible(true);
+    }
+    
+    private void sendRefresh() {
+        socket.sendCommand(new Command(Command.TARGET_BROADCAST, "SRV"));
+    }
+    
+    private void createGameWindow(InetAddress address) {
+        
     }
 
     /**
@@ -36,7 +82,27 @@ public class ServerSelectWindow extends JFrame {
         }
         @Override
         public void actionPerformed(ActionEvent e) {
-
+            int selectedRow = serverListTable.getSelectedRow();
+            if ( selectedRow == -1 ) return;
+            
+            createGameWindow(serverListTableModel.getAddress(selectedRow));
+        }
+    };
+    
+    private final Action refreshAction = new AbstractAction() {
+        {
+            putValue(NAME, "Refresh");
+        }
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            sendRefresh();
+        }
+    };
+    
+    private final CommandEventListener listener = new AdvancedCommandEventAdapter() {
+        @Override
+        protected void unknownCommand(CommandEvent command) {
+            
         }
     };
 }

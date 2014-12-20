@@ -1,6 +1,8 @@
 package eu.arrvi.vects.spectator;
 
 import javax.swing.*;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 
 /**
  * Vects spectator app launcher. Should display server select window after running
@@ -16,7 +18,11 @@ public class VectsSpectator {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                new ServerSelectWindow();
+                try {
+                    new ServerSelectWindow();
+                } catch (SocketException | UnknownHostException e) {
+                    e.printStackTrace();
+                }
             }
         });
     }
