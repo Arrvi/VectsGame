@@ -18,6 +18,10 @@ public class VehiclePosition extends TrackPoint {
         this.vehicleId = vehicleId;
     }
 
+    public VehiclePosition(int id, TrackPoint position) {
+        this(id, position.getX(), position.getY());
+    }
+
     public int getVehicleId() {
         return vehicleId;
     }

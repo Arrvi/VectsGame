@@ -3,12 +3,10 @@ package eu.arrvi.vects.server;
 import eu.arrvi.vects.common.*;
 import eu.arrvi.vects.events.*;
 
-import java.awt.*;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
 import java.util.*;
-import java.util.List;
 
 /**
  * Main game logic class
@@ -48,14 +46,15 @@ class Game {
     /**
      * List of Vehicles that play this game.
      */
-	private List<Vehicle> vehicles = new ArrayList<>();
+//	private List<Vehicle> vehicles = new ArrayList<>();
+	private Map<ServerSocketHandler, Vehicle> vehicles = new HashMap<>();
 
     /**
      * List of clients connected to server.
      */
 	private List<ServerSocketHandler> broadcastSockets = new ArrayList<>();
 	
-	private Set<ServerSocketHandler> clients = new HashSet<>();
+	private List<ServerSocketHandler> clients = new ArrayList<>();
 
     /**
      * Number of players required to start a game.
@@ -106,11 +105,11 @@ class Game {
      *
      * @param v vehicle to be added
      */
-	public void addVehicle(Vehicle v) {
+	public void addVehicle(ServerSocketHandler socket, Vehicle v) {
 		if ( vehicles.size() >= numberOfPlayers ) {
 			throw new GameFullException(v.getID());
 		}
-		vehicles.add(v);
+		vehicles.put(socket, v);
 		inGame++;
 
 		pcs.firePropertyChange("playerList", null, broadcastSockets);
@@ -151,13 +150,13 @@ class Game {
 	public void removeClient(ServerSocketHandler socket) {
 		clients.remove(socket);
 		ces.removeCommandEventListener(socket.getPort(), socket);
-		socket.removeCommandEventListener(commandHandler)
+		socket.removeCommandEventListener(commandHandler);
 		pcs.firePropertyChange("connectedSockets", null, clients);
 	}
 
 	public boolean ready() {
 		int actives = 0;
-		for (Vehicle vehicle : vehicles) {
+		for (Vehicle vehicle : vehicles.values()) {
 			if ( vehicle.isReady() ) actives++;
 		}
 		System.out.println(actives+" of "+numberOfPlayers+" active");
@@ -170,7 +169,7 @@ class Game {
 	}
 
 	private void shufflePlayers() {
-		Collections.shuffle(vehicles);
+		Collections.shuffle(clients);
 	}
 
 	private void startGame() {
@@ -181,6 +180,7 @@ class Game {
 	}
 
 	public void nextPlayer() {
+		Vehicle currentVehicle;
 		if ( currentPlayer != -1 ) {
 			if (status != STARTED) {
 				return;
@@ -188,16 +188,17 @@ class Game {
 			if (vehicles.size() == 0) {
 				return;
 			}
-			if (vehicles.get(currentPlayer).isActive() && vehicles.get(currentPlayer).isDestroyed()) {
+			currentVehicle = vehicles.get(clients.get(currentPlayer));
+			if (currentVehicle.isActive() && currentVehicle.isDestroyed()) {
 				Command command = new Command(
 						"CHT", 
-						new ChatMessage(ChatMessage.SERVER, "Player " + vehicles.get(currentPlayer).getID() + " crashed")
+						new ChatMessage(ChatMessage.SERVER, "Player " + currentVehicle.getID() + " crashed")
 				);
 				ces.fireCommand(command);
 				inGame--;
 			}
 			if (numberOfPlayers >= 2 && inGame <= 1) {
-				for (Vehicle v : vehicles) {
+				for (Vehicle v : vehicles.values()) {
 					if (!v.isDestroyed()) {
 						Command command = new Command(v.getID(), "WIN", new SimpleInfo("All other players crashed"));
 						ces.fireCommand(command);
@@ -208,21 +209,26 @@ class Game {
 				end(null);
 				return;
 			}
-			for (Vehicle vehicle : vehicles) {
+			for (Vehicle vehicle : vehicles.values()) {
 				vehicle.setActive(false);
 			}
 		}
 		currentPlayer = (currentPlayer+1)%vehicles.size();
-		if ( vehicles.get(currentPlayer).isDestroyed() ) nextPlayer();
+		currentVehicle = vehicles.get(clients.get(currentPlayer));
+		if ( currentVehicle.isDestroyed() ) nextPlayer();
 
-		System.out.println("Player "+vehicles.get(currentPlayer).getID()+" active");
+		System.out.println("Player "+currentVehicle.getID()+" active");
 		broadcastPositions();
-		vehicles.get(currentPlayer).startMove();
+		currentVehicle.startMove();
 
 		pcs.firePropertyChange("playerList", null, broadcastSockets);
 	}
 	
-	public Point getStartPoint() {
+	private void moveVehicle() {
+		
+	}
+	
+	public TrackPoint getStartPoint() {
 		return track.getStartPoint();
 	}
 
@@ -230,7 +236,7 @@ class Game {
 		return track.getTile(x, y);
 	}
 
-	public int getTile(Point p) {
+	public int getTile(TrackPoint p) {
 		return getTile((int)p.getX(), (int)p.getY());
 	}
 	

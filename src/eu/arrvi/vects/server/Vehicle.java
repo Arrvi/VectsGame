@@ -2,7 +2,6 @@ package eu.arrvi.vects.server;
 
 import eu.arrvi.vects.common.*;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -20,7 +19,7 @@ class Vehicle {
 	private int maxSpeed = 10;
 	private int acc = 1;
 	
-	public Vehicle(Point pos) {
+	public Vehicle(TrackPoint pos) {
 		position = pos;
 		speed = new SpeedVector(0,0);
 		positionHistory.add(pos);
@@ -34,38 +33,21 @@ class Vehicle {
 			pt.translate(v);
 			pts.add(pt);
 		}
-		pts.removeAll(socketHandler.getGame().getPositions());
+//		pts.removeAll(socketHandler.getGame().getPositions());
 		return pts;
 	}
 	
-	public int moveTo(TrackPoint point) throws GameException {
+	public void moveTo(TrackPoint point) throws GameException {
 		if ( !active ) {
 			throw new VehicleNotActiveException(this.getID());
 		}
-		if ( !getPossibleMoves().contains(point) ) {
-			throw new IllegalMoveException(this.getID());
-		}
+//		if ( !getPossibleMoves().contains(point) ) {
+//			throw new IllegalMoveException(this.getID());
+//		}
 		speed = new SpeedVector(position, point);
 		position = point;
 		positionHistory.add(point);
 		System.out.println("Moved "+getID()+" to: "+point);
-		
-		
-
-		if ( getTile() == Track.OUT ) {
-			destroyVehicle();
-		}
-		else if ( getTile() == Track.FINISH ) {
-			win();
-			doCommand("WIN You have finished first");
-		}
-		else {
-			doCommand("ACK "+(int)point.getX()+","+(int)point.getY());
-		}
-	}
-
-	private void win() {
-		socketHandler.getGame().end(this);
 	}
 
 	private void destroyVehicle() {
@@ -74,10 +56,6 @@ class Vehicle {
 
 	public boolean isDestroyed() {
 		return destroyed;
-	}
-
-	public int getTile() {
-		return socketHandler.getGame().getTile(position);
 	}
 
 	public void setSocketHandler(ServerSocketHandler socketHandler) {
@@ -131,6 +109,6 @@ class Vehicle {
 	}
 
 	public VehiclePosition getVehiclePosition() {
-		
+		return new VehiclePosition(getID(), getPosition());
 	}
 }

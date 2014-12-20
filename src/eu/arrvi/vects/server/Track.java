@@ -1,14 +1,13 @@
 package eu.arrvi.vects.server;
 
-import java.awt.Point;
+import eu.arrvi.vects.common.TrackPoint;
+
+import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.util.*;
-
-import javax.activation.MimetypesFileTypeMap;
-import javax.imageio.ImageIO;
 
 class Track {
 	public final static int IN = 0xffffffff;
@@ -34,7 +33,7 @@ class Track {
 	
 	private boolean canRace = false;
 	
-	private ArrayList<Point> start = new ArrayList<Point>();
+	private ArrayList<TrackPoint> start = new ArrayList<>();
 
 	public Track(File image, int resolution) throws IOException {
 		this.file = image;
@@ -63,7 +62,7 @@ class Track {
 	
 	private static Random rand = new Random();
 	private BufferedImage image;
-	public Point getStartPoint() {
+	public TrackPoint getStartPoint() {
 		return start.remove(rand.nextInt(start.size()));
 	}
 	
@@ -99,7 +98,7 @@ class Track {
 		for (int x=0; x<resolution; ++x) {
             for(int y=0; y<resolution; ++y) {
                 track[x][y] = approxType(image.getRGB((int)(x*dx+halfPix), (int)(y*dy+halfPix)));
-                if (track[x][y] == START) start.add(new Point(x, y));
+                if (track[x][y] == START) start.add(new TrackPoint(x, y));
                 else if (track[x][y] == FINISH) ends++;
             }
         }

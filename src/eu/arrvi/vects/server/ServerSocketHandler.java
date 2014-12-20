@@ -1,13 +1,14 @@
 package eu.arrvi.vects.server;
 
 import eu.arrvi.vects.common.Command;
+import eu.arrvi.vects.events.CommandEvent;
 import eu.arrvi.vects.events.CommandEventListener;
 import eu.arrvi.vects.events.CommandEventSupport;
 
 import java.io.*;
 import java.net.Socket;
 
-class ServerSocketHandler implements Runnable {
+class ServerSocketHandler implements Runnable, CommandEventListener {
 	private Socket socket;
 	private BufferedWriter writer;
 	
@@ -189,5 +190,10 @@ class ServerSocketHandler implements Runnable {
 	
 	public void close() throws IOException {
 		socket.close();
+	}
+
+	@Override
+	public void commandReceived(CommandEvent event) {
+		
 	}
 }
