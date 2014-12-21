@@ -20,19 +20,20 @@ public class DatagramHandler implements CommandEventListener {
     /**
      * Broadcast port for sending requests for server information
      */
+    @SuppressWarnings("FieldCanBeLocal")
     private int broadcastPort = 11531;
     
     /**
      * Socket for communication
      */
-    DatagramSocket socket;
+    private DatagramSocket socket;
 
     /**
      * Input datagram
      */
-    DatagramPacket input = new DatagramPacket(new byte[512], 512);
+    private DatagramPacket input = new DatagramPacket(new byte[512], 512);
     
-    CommandEventSupport ces = new CommandEventSupport(this);
+    private CommandEventSupport ces = new CommandEventSupport(this);
 
     /**
      * Creates handler for spectator protocol. Configures socket and broadcast then starts to listen on given port.

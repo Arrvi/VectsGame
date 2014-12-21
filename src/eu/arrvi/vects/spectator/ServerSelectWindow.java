@@ -19,7 +19,7 @@ import java.net.UnknownHostException;
 public class ServerSelectWindow extends JFrame {
     private final JTable serverListTable;
     private final ServerListTableModel serverListTableModel = new ServerListTableModel();
-    DatagramHandler socket;
+    private DatagramHandler socket;
 
     public ServerSelectWindow() throws HeadlessException, SocketException, UnknownHostException {
         super("Vects Spectator");
@@ -86,6 +86,7 @@ public class ServerSelectWindow extends JFrame {
         }
     };
     
+    @SuppressWarnings("FieldCanBeLocal")
     private final Action refreshAction = new AbstractAction() {
         {
             putValue(NAME, "Refresh");
