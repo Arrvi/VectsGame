@@ -1,9 +1,6 @@
 package eu.arrvi.vects.spectator;
 
 import eu.arrvi.vects.common.Command;
-import eu.arrvi.vects.events.AdvancedCommandEventAdapter;
-import eu.arrvi.vects.events.CommandEvent;
-import eu.arrvi.vects.events.CommandEventListener;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
@@ -35,7 +32,7 @@ public class ServerSelectWindow extends JFrame {
                 socket.close();
             }
         });
-        socket.addCommandEventListener(listener);
+        socket.addCommandEventListener("GAM", serverListTableModel); // game info only
         
         serverListTable = new JTable(serverListTableModel);
         serverListTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -67,7 +64,7 @@ public class ServerSelectWindow extends JFrame {
         socket.sendCommand(new Command(Command.TARGET_BROADCAST, "SRV"));
     }
     
-    private void createGameWindow(InetAddress address) {
+    private void createGameWindow(InetAddress address, int port) {
         
     }
 
@@ -85,7 +82,7 @@ public class ServerSelectWindow extends JFrame {
             int selectedRow = serverListTable.getSelectedRow();
             if ( selectedRow == -1 ) return;
             
-            createGameWindow(serverListTableModel.getAddress(selectedRow));
+            createGameWindow(serverListTableModel.getAddress(selectedRow), serverListTableModel.getPort(selectedRow));
         }
     };
     
@@ -96,13 +93,6 @@ public class ServerSelectWindow extends JFrame {
         @Override
         public void actionPerformed(ActionEvent e) {
             sendRefresh();
-        }
-    };
-    
-    private final CommandEventListener listener = new AdvancedCommandEventAdapter() {
-        @Override
-        protected void unknownCommand(CommandEvent command) {
-            
         }
     };
 }
