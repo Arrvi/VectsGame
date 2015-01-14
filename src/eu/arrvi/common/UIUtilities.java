@@ -18,4 +18,14 @@ public class UIUtilities {
             }
         }
     }
+    
+    public static void packAndShow(JFrame frame) {
+        packAndShow(frame, true);
+    }
+    public static void packAndShow(JFrame frame, boolean exitOnClose) {
+        frame.pack();
+        frame.setLocationRelativeTo(null);
+        if ( exitOnClose ) frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        frame.setVisible(true);
+    }
 }

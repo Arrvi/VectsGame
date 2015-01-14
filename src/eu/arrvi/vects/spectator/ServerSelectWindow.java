@@ -1,5 +1,6 @@
 package eu.arrvi.vects.spectator;
 
+import eu.arrvi.common.UIUtilities;
 import eu.arrvi.vects.common.Command;
 
 import javax.swing.*;
@@ -54,10 +55,8 @@ public class ServerSelectWindow extends JFrame {
         pane.add(new JButton(connectAction), BorderLayout.SOUTH);
 
         setContentPane(pane);
-        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        pack();
-        setLocationRelativeTo(null);
-        setVisible(true);
+        
+        UIUtilities.packAndShow(this);
     }
     
     private void sendRefresh() {

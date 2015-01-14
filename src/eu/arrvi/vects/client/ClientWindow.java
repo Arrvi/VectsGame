@@ -1,5 +1,7 @@
 package eu.arrvi.vects.client;
 
+import eu.arrvi.common.UIUtilities;
+
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Point;
@@ -90,10 +92,7 @@ class ClientWindow extends JFrame {
 		setContentPane(mainPane);
 
 		// display window
-		pack();
-		setLocationRelativeTo(null);
-		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-		setVisible(true);
+		UIUtilities.packAndShow(this);
 	}
 
 	/**

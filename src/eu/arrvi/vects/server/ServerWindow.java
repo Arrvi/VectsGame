@@ -1,5 +1,7 @@
 package eu.arrvi.vects.server;
 
+import eu.arrvi.common.UIUtilities;
+
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.BorderLayout;
@@ -23,10 +25,7 @@ class ServerWindow extends JFrame implements PropertyChangeListener {
 
         createGUI();
 
-        pack();
-        setLocationRelativeTo(null);
-        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        setVisible(true);
+        UIUtilities.packAndShow(this);
     }
 
     private void createGUI() {
