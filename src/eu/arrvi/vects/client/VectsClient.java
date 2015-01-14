@@ -1,5 +1,7 @@
 package eu.arrvi.vects.client;
 
+import eu.arrvi.common.UIUtilities;
+
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
@@ -10,13 +12,7 @@ import javax.swing.UnsupportedLookAndFeelException;
 public class VectsClient {
 
 	public static void main(String[] args) {
-		try {
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		} catch (ClassNotFoundException | InstantiationException
-				| IllegalAccessException | UnsupportedLookAndFeelException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		UIUtilities.setSystemLookAndFeel();
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {

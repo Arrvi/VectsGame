@@ -1,5 +1,7 @@
 package eu.arrvi.vects.server;
 
+import eu.arrvi.common.UIUtilities;
+
 import javax.swing.*;
 import java.io.File;
 
@@ -15,12 +17,7 @@ public class VectsServer {
     }
 
     public VectsServer() {
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception e) {
-            System.err.println("Cannot set look and feel. Leaving default");
-        }
-
+        UIUtilities.setSystemLookAndFeel();
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {

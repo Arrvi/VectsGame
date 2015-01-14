@@ -1,5 +1,7 @@
 package eu.arrvi.vects.spectator;
 
+import eu.arrvi.common.UIUtilities;
+
 import javax.swing.*;
 import java.net.SocketException;
 import java.net.UnknownHostException;
@@ -9,12 +11,7 @@ import java.net.UnknownHostException;
  */
 public class VectsSpectator {
     public static void main(String[] args) {
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (ClassNotFoundException | InstantiationException
-                | IllegalAccessException | UnsupportedLookAndFeelException e) {
-            e.printStackTrace();
-        }
+        UIUtilities.setSystemLookAndFeel();
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
