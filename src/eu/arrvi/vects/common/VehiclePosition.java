@@ -8,8 +8,9 @@ public class VehiclePosition extends TrackPoint {
     private int vehicleId;
 
     /**
-     * Creates point on track with given coordinates. [0, 0] is top left corner.
+     * Creates point on track with given coordinates for specified vehicle. [0, 0] is top left corner.
      *
+     * @param vehicleId id of a vehicle with this position
      * @param x horizontal distance to left edge
      * @param y vertical distance to top edge
      */
@@ -29,18 +30,33 @@ public class VehiclePosition extends TrackPoint {
     public void setVehicleId(int vehicleId) {
         this.vehicleId = vehicleId;
     }
-    
-    public static CommandParameter getFromString(String str) throws NumberFormatException {
+
+    /**
+     * Parses a string and returns corresponding command parameter.
+     * 
+     * @param str string representation of this parameter
+     * @return null on parse error, parameter object representation of given string otherwise
+     */
+    public static CommandParameter getFromString(String str) {
         String[] parts = str.split("[;,]");
+        
         if ( parts.length != 3 ) {
             return null;
         }
         
-        return new VehiclePosition(
-                Integer.parseInt(parts[0]),
-                Integer.parseInt(parts[1]),
-                Integer.parseInt(parts[2])
-        );
+        int vid,x,y;
+        
+        try {
+            vid = Integer.parseInt(parts[0]);
+            x = Integer.parseInt(parts[1]);
+            y = Integer.parseInt(parts[2]);
+        }
+        catch (NumberFormatException e) {
+            e.printStackTrace();
+            return null;
+        }
+        
+        return new VehiclePosition(vid, x, y);
     }
 
     @Override

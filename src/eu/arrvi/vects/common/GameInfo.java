@@ -56,7 +56,7 @@ public class GameInfo extends CommandParameter {
         String[] parts = command.split(";");
         String[] ip = parts[0].split(":");
         String[] track = parts[3].split(",");
-        if ( parts.length != 4 || ip.length != 2 ) throw new IllegalArgumentException("Command syntax error - invalid number of separators");
+        if ( parts.length != 4 || ip.length != 2 ) return null;
         return new GameInfo(
                 InetAddress.getByName(ip[0]), 
                 parseInt(ip[1]), 

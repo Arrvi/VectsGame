@@ -134,7 +134,7 @@ class ServerSocketHandler implements Runnable, CommandEventListener {
 			
 			while((commandString = reader.readLine()) != null) {
 				System.out.println(getPort()+": "+commandString);
-				Command command = Command.getCommandFromString(commandString);
+				Command command = Command.getCommandFromString(getPort(), commandString);
 				
 				if ( command == null ) continue;
 				
