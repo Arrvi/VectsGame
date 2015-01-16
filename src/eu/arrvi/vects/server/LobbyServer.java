@@ -7,5 +7,4 @@ import java.net.ServerSocket;
  */
 public class LobbyServer {
     private ServerSocket serverSocket;
-    
 }

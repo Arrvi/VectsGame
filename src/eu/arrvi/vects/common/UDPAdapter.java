@@ -1,10 +1,8 @@
 package eu.arrvi.vects.common;
 
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.SocketException;
+import java.net.*;
+import java.util.Enumeration;
 
 /**
  * Helper for dealing with non-human usable datagram packets. Also splits longer messages. 
@@ -29,19 +27,47 @@ import java.net.SocketException;
  *     </tr>
  * </table>
  */
+@SuppressWarnings("UnusedDeclaration")
 public class UDPAdapter {
+    private final InetAddress address;
+    private final int port;
     private int chunkTimeout = 2000;
     private DatagramSocket socket;
     private int chunkSize = 1024;
 
     /**
-     * Creates helper for UDP communication on specific address and port.
-     * @param address local address to bind
-     * @param port local port to us
+     * Creates helper for UDP communication on specified address and port.
+     * @param address destination address
+     * @param lport local port to use
+     * @param dport destination port
      * @throws SocketException on socket creation errors (especially when given port is unavailable)
      */
-    public UDPAdapter(InetAddress address, int port) throws SocketException {
-        socket = new DatagramSocket(port, address);
+    public UDPAdapter(InetAddress address, int lport, int dport) throws SocketException {
+        this.address = address;
+        port = dport;
+        try {
+            socket = new DatagramSocket(lport, Inet4Address.getByName("0.0.0.0"));
+            socket.connect(address, dport);
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Creates helper for UDP broadcast communication on specified port.
+     * @param lport local port to receive broadcasts
+     * @param dport remote port to send broadcasts
+     * @throws SocketException on socket creation errors (especially when given port is unavailable)
+     */
+    public UDPAdapter(int lport, int dport) throws SocketException {
+        address = getBradcastAddress();
+        port = dport;
+        try {
+            socket = new DatagramSocket(lport, Inet4Address.getByName("0.0.0.0"));
+            socket.setBroadcast(true);
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -62,7 +88,7 @@ public class UDPAdapter {
             buff[1] = chunk;
             System.arraycopy(bytes, offset, buff, 2, chunkSize);
             if ( packet == null ) {
-                packet = new DatagramPacket(buff, 0, buff.length);
+                packet = new DatagramPacket(buff, 0, buff.length, address, port);
             }
             else {
                 packet.setData(buff, 0, buff.length);
@@ -88,6 +114,7 @@ public class UDPAdapter {
      * @return combined message
      * @throws IOException on socket read error or timeout
      */
+    @SuppressWarnings("OverlyBroadThrowsClause")
     public String read(int timeout) throws IOException {
         StringBuilder sb = new StringBuilder();
         DatagramPacket packet = new DatagramPacket(new byte[chunkSize+2], chunkSize+2);
@@ -118,5 +145,36 @@ public class UDPAdapter {
 
     public void setChunkTimeout(int chunkTimeout) {
         this.chunkTimeout = chunkTimeout;
+    }
+    
+    private static InetAddress broadcastAddress=null; // Cache
+    public static InetAddress getBradcastAddress() throws SocketException {
+        if ( broadcastAddress != null ) {
+            return broadcastAddress;
+        }
+        
+        /* Code: http://enigma2eureka.blogspot.com/2009/08/finding-your-ip-v4-broadcast-address.html */
+        Enumeration<NetworkInterface> interfaces =
+                NetworkInterface.getNetworkInterfaces();
+        while (interfaces.hasMoreElements()) {
+            NetworkInterface networkInterface = interfaces.nextElement();
+            if (networkInterface.isLoopback())
+                continue;    // Don't want to broadcast to the loopback interface
+            for (InterfaceAddress interfaceAddress :
+                    networkInterface.getInterfaceAddresses()) {
+                InetAddress broadcast = interfaceAddress.getBroadcast();
+                if (broadcast == null)
+                    continue;
+                
+                broadcastAddress = broadcast;
+                return broadcast;
+            }
+        }
+        
+        return null;
+    }
+
+    public int getPort() {
+        return socket.getLocalPort();
     }
 }
